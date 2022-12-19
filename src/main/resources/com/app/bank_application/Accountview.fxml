@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="20.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.bank_application.AccountviewController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+   <children>
+      <FlowPane alignment="CENTER_RIGHT" prefHeight="7.0" prefWidth="199.0">
+         <children>
+            <Button mnemonicParsing="false" onAction="#goBackToAccountView" prefHeight="24.0" prefWidth="50.0" text="Back" textFill="#3f90d7" />
+         </children>
+      </FlowPane>
+      <FlowPane prefHeight="48.0" prefWidth="200.0">
+         <children>
+            <Label fx:id="konto_name" alignment="CENTER" prefHeight="25.0" prefWidth="142.0" text="Kontoname:" textFill="#3f90d7">
+               <font>
+                  <Font size="13.0" />
+               </font>
+            </Label>
+            <Label fx:id="konto_balance" alignment="CENTER" prefHeight="22.0" prefWidth="140.0" text="Kontostand: " textFill="#3f90d7">
+               <font>
+                  <Font size="13.0" />
+               </font>
+            </Label>
+         </children>
+      </FlowPane>
+      <Label fx:id="konto_name1" alignment="CENTER" prefHeight="25.0" prefWidth="195.0" text="Transactions:" textFill="#3f90d7">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <ListView fx:id="allTransactions" prefHeight="200.0" prefWidth="200.0">
+         <contextMenu>
+            <ContextMenu>
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#deleteTransaction" text="löschen" />
+              </items>
+            </ContextMenu>
+         </contextMenu></ListView>
+      <Button mnemonicParsing="false" onAction="#createTransaction" text="Transaction Hinzufügen" textFill="#3f90d7" />
+      <Label text="Sortierung :" />
+      <FlowPane hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="2.0">
+         <children>
+            <Button fx:id="abwaerts" mnemonicParsing="false" onAction="#sortDesc" text="Abwärts" />
+            <Button fx:id="aufwaerts" mnemonicParsing="false" onAction="#sortAsc" text="Aufwärts" />
+            <Button fx:id="positiv" mnemonicParsing="false" onAction="#sortPositiv" text="Positiv" />
+            <Button fx:id="negativ" mnemonicParsing="false" onAction="#sortNegativ" text="Negativ" />
+         </children>
+      </FlowPane>
+   </children>
+</VBox>
