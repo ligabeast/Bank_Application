@@ -183,8 +183,6 @@ public class AccountviewController implements Initializable {
 
         newTransaction.show();
 
-
-
     }
 
     public Node getNodeByRowColumnIndex (final int row, final int column, GridPane gridPane) {
