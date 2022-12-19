@@ -295,4 +295,14 @@ public class PrivateBankAlt implements Bank{
         }
         return ls;
     }
+
+    @Override
+    public void deleteAccount(String account) throws AccountDoesNotExistException {
+
+    }
+
+    @Override
+    public List<String> getAllAccounts() {
+        return null;
+    }
 }

@@ -13,7 +13,7 @@ public class Transfer extends Transaction{
     /**
      * sender of transfer
      */
-    private String sender = "EMPTY";
+    public String sender = "EMPTY";
 
     /**
      * recipient of transfer

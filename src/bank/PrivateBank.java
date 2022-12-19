@@ -32,6 +32,8 @@ public class PrivateBank implements Bank{
     /**
      * Maped die Transaktionen zu den jeweiligen Konten
      */
+
+    private String DirectoryName;
     protected Map<String, List<Transaction>> konten = new HashMap<String, List<Transaction>>();
 
     /**
@@ -40,12 +42,12 @@ public class PrivateBank implements Bank{
      * @param incomingInterest Dieses Attribut gibt die Zinsen bzw. den Zinssatz (positiver Wert in Prozent, 0 bis 1) an, die bei einer Einzahlung (Deposit) anfallen
      * @param outgoingInterest Dieses Attribut gibt die Zinsen bzw. den Zinssatz (positiver Wert in Prozent, 0 bis 1) an, die bei einer Auszahlung (Withdrawal) anfallen
      */
-    public PrivateBank(String name, double incomingInterest,double outgoingInterest)
+    public PrivateBank(String name, double incomingInterest,double outgoingInterest, String Directory)
     {
         this.name = name;
         this.incomingInterest = incomingInterest;
         this.outgoingInterest = outgoingInterest;
-
+        this.DirectoryName = Directory;
     }
 
     /**
@@ -53,7 +55,7 @@ public class PrivateBank implements Bank{
      * @param obj mit zustand
      */
     public PrivateBank(PrivateBank obj){
-        this(obj.name, obj.incomingInterest, obj.outgoingInterest);
+        this(obj.name, obj.incomingInterest, obj.outgoingInterest, obj.DirectoryName);
     }
     /**
      * Überschreibung der toString Method um ein Objekt mit den initialisierten Werten auszugeben
@@ -293,7 +295,7 @@ public class PrivateBank implements Bank{
      */
     @Override
     public List<Transaction> getTransactionsByType(String account, boolean positive) {
-        List<Transaction> ls = konten.get(account);
+        List<Transaction> ls = new ArrayList<>((konten.get(account)));
         if(positive){
             ls.removeIf(p ->
                     p.calculate() < 0
@@ -303,36 +305,34 @@ public class PrivateBank implements Bank{
         }
         return ls;
     }
-    public void writeAccount(String name) throws IOException{
+    /**
+     * Gibt alle Accounts der Bank zurück
+     * @return List<String> Liste mit allen Accounts der Bank
+     */
+    public List<String> getAllAccounts() {
+        /*List<String> accountsList = new ArrayList<>();
+        for (String s:
+             this.accountsToTransactions.keySet()) {
 
-        List<Transaction> allTransactions = this.getTransactions(name);
-        File file = new File("D:/Java Projekte/OOS_Praktikum_1/Praktikum1/SerializedObjects/" + name + ".json");
-        FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8);
-
-        Gson JsonBuilder = new GsonBuilder().
-        registerTypeAdapter(Payment.class, new SerializeJson()).
-        registerTypeAdapter(OutgoingTransfer.class, new SerializeJson()).
-        registerTypeAdapter(IncomingTransfer.class, new SerializeJson()).
-        setPrettyPrinting().create();
-
-
-        writer.write(String.valueOf(JsonBuilder.toJson(allTransactions)));
-        writer.close();
+        }*/
+        return this.konten.keySet().stream().toList();
     }
-    public void readAccounts() throws IOException{
 
-        // liste für klassentypen
+    // 1. void readAccounts() throws IOException: Diese Methode soll alle vorhandenen Konten
+    // vom Dateisystem lesen und im PrivateBank-Objekt (genauer:
+    // im Klassenattribut accountsToTransactions) zur Verfügung stellen.
+    public void readAccounts() throws IOException {
+
         Type listType = new TypeToken<ArrayList<Transaction>>(){}.getType();
-        String directoryName = "D:/Java Projekte/OOS_Praktikum_1/Praktikum1/SerializedObjects";
 
         // MyDeserialize, da von gespeicherten daten gelesen wird
-        GsonBuilder builder = new GsonBuilder().registerTypeAdapter(listType,new SerializeJson());
+        GsonBuilder builder = new GsonBuilder().registerTypeAdapter(listType,new DeserializeJson());
 
         //Creates a Gson instance based on current configuration
         Gson gson = builder.create();
 
         // einlesen
-        File directory = new File(directoryName);
+        File directory = new File(DirectoryName);
 
         //dateien im ordner
         String[] pfadnamen = directory.list();
@@ -345,7 +345,7 @@ public class PrivateBank implements Bank{
             if(iterator.endsWith(".json")) { //wenn json datei
 
                 FileReader myreader = new FileReader(
-                        String.format("%s/%s",directoryName,iterator));
+                        String.format("%s/%s",getDirectoryName(),iterator));
 
                 // speichere objekt als array in 'list'
                 list = gson.fromJson(parseReader(myreader).getAsJsonArray(), listType);
@@ -353,12 +353,50 @@ public class PrivateBank implements Bank{
                 myreader.close();
                 try {
                     // lese kontoname ohne ".json"
-                    this.createAccount(iterator.substring(0, iterator.length() - 5), list);  //list = liste der transaktion
+                    createAccount(iterator.substring(0, iterator.length() - 5), list);  //list = liste der transaktion
                 }
-                catch (Exception e) {
+                catch (AccountAlreadyExistsException | TransactionAlreadyExistException | TransactionAttributeException e) {
                     System.out.println("Fehler bei readAccounts funktion");
                 }
             }
+        }
+    }
+
+    public String getDirectoryName() {
+        return this.DirectoryName;
+    }
+
+
+    // 2. void writeAccount(String account) throws IOException:
+    // Diese Methode soll das angegebene Konto im Dateisystem
+    // persistieren (serialisieren und anschließend speichern).
+    public void writeAccount (String account) throws IOException{
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setPrettyPrinting();
+        gsonBuilder.registerTypeAdapter(IncomingTransfer.class,new SerializeJson());
+        gsonBuilder.registerTypeAdapter(OutgoingTransfer.class,new SerializeJson());
+        gsonBuilder.registerTypeAdapter(Payment.class,new SerializeJson());
+
+        Gson gson = gsonBuilder.create();
+
+        String pfad = this.DirectoryName+"\\"+account+".json";
+
+        String json = "";
+        BufferedWriter writer = new BufferedWriter(new FileWriter(pfad));
+        List<Transaction> liste = this.konten.get(account);
+        writer.write(String.valueOf(gson.toJson(liste)));
+        writer.close();
+    }
+    /** Löscht der übergebene Account aus der Bank
+     * @param account Der zu löschende Account
+     */
+    @Override
+    public void deleteAccount(String account) throws AccountDoesNotExistException {
+        if (this.konten.containsKey(account)){  // Wenn der Account existiert...
+            this.konten.remove(account);    //... Account löschen
+        }
+        else{
+            throw new AccountDoesNotExistException();
         }
     }
 

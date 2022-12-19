@@ -97,4 +97,7 @@ public interface Bank {
      * @return the list of all transactions by type
      */
     List<Transaction> getTransactionsByType(String account, boolean positive);
+
+    void deleteAccount(String account) throws AccountDoesNotExistException;
+    List<String> getAllAccounts();
 }
